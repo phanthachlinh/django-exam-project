@@ -16,14 +16,10 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import include, path
 from django.conf.urls import url
-from shop.views import ShopCategories, ShopConfig, ShopSubCategories
 from django.conf import settings
 from django.conf.urls.static import static
 
 urlpatterns = [
-    url('shops/subcategories/(?P<pk>\d+)$', ShopSubCategories.as_view()),
-    url('shops/categories/(?P<pk>\d+)$', ShopCategories.as_view()),
-    url('shops/(?P<pk>\d+)$', ShopConfig.as_view()),
-    path('shop/', include('shop.urls')),
+    path('shops/', include('shop.urls')),
     path('admin/', admin.site.urls),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

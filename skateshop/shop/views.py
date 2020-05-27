@@ -2,7 +2,8 @@ from django.http import HttpResponse
 from rest_framework import serializers, generics
 from shop.models import Shop, Category, Sub_Category
 from django.http import JsonResponse
-
+from django.core import serializers as coreSerializers
+from django.db.models import Q
 
 # Create your views here.
 def index(request):
@@ -21,8 +22,7 @@ class ShopCategories(generics.RetrieveAPIView):
     serializer_class = CategorySerializer
 
     def get(self, request, pk, format=None):
-        print(pk)
-        return JsonResponse(list(Category.objects.all().values()), safe=False)
+        return JsonResponse(list(Category.objects.all().filter(FK_Shop = pk).values()), safe=False)
 
 
 # Serializers define the API representation.
@@ -33,19 +33,17 @@ class ShopConfigSerializer(serializers.Serializer):
 
 
 class ShopConfig(generics.RetrieveAPIView):
-    queryset = Shop.objects.all()
     serializer_class = ShopConfigSerializer
-
+    queryset = Shop.objects.all()
     def get(self, request, pk, format=None):
         print(pk)
-        return JsonResponse(list(Shop.objects.all().filter(ID=pk).values()), safe=False)
-
-
+        print(self.queryset.all().filter(ID=pk).values()[0])
+        return JsonResponse(self.queryset.all().filter(ID=pk).values()[0], safe=False)
 # Serializers define the API representation.
 class SubCategoriesSerializer(serializers.Serializer):
     class Meta:
         model = Shop
-        fields = ['ID', 'name', 'logo']
+        fields = ['ID', 'name']
 
 
 class ShopSubCategories(generics.RetrieveAPIView):
@@ -53,6 +51,11 @@ class ShopSubCategories(generics.RetrieveAPIView):
     serializer_class = SubCategoriesSerializer
 
     def get(self, request, pk, format=None):
-        print(pk)
-        print(Sub_Category.objects.all().values())
-        return JsonResponse(list(Sub_Category.objects.all().filter(FK_Category_id=pk).values()), safe=False)
+        categories = Category.objects.all().filter(FK_Shop=pk).values()
+        q_objects = Q()
+        for category in categories:
+            print('xxxxxxxxxxxxxxxxxxxxxxxx')
+            print(category['ID'])
+            q_objects |= Q(FK_Category = category['ID'])
+        print(Sub_Category.objects.all().filter().values())
+        return JsonResponse(list(Sub_Category.objects.all().filter(q_objects).values()), safe=False)
